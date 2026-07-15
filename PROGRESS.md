@@ -69,6 +69,8 @@ SaaS patterns (auth, rate limiting, async DB, session memory).
 
 ## 📁 Folder Structure
 
+---
+
 aegis/
 ├── PROGRESS.md                  ← project brain (this file)
 ├── .env                         ← secrets (never commit)
