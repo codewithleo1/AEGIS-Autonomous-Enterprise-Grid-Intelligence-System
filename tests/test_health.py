@@ -4,7 +4,7 @@ def test_health_returns_200(client):
 
 
 def test_health_returns_correct_fields(client):
-    data = response = client.get("/health").json()
+    data = client.get("/health").json()
     assert data["status"] == "ok"
     assert data["app"] == "AEGIS"
     assert "version" in data

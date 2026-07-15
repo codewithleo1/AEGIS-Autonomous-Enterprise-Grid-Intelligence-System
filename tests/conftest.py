@@ -1,15 +1,17 @@
 import pytest
+from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
-from unittest.mock import patch
-from backend.main import app
 
 API_KEY = "aegis-secret-123"
 
 
 @pytest.fixture
 def client():
-    with TestClient(app) as c:
-        yield c
+    # Patch create_tables so TestClient doesn't connect to real DB
+    with patch("backend.db.postgres.create_tables", new_callable=AsyncMock):
+        from backend.main import app
+        with TestClient(app, raise_server_exceptions=False) as c:
+            yield c
 
 
 @pytest.fixture

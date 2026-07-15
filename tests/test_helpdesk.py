@@ -1,9 +1,9 @@
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 from backend.schemas.response import ToolCall
 
 
 def test_ask_returns_reply(client, auth_headers):
-    with patch("backend.api.routes.helpdesk.run_agent", return_value=("Hello from AEGIS", [])):
+    with patch("backend.api.routes.helpdesk.run_agent", new_callable=AsyncMock, return_value=("Hello from AEGIS", [])):
         response = client.post("/ask",
             json={"session_id": "test-s1", "message": "hi", "employee_id": "EMP001"},
             headers=auth_headers,
@@ -21,7 +21,7 @@ def test_ask_returns_tools_used(client, auth_headers):
         args={"ticket_id": "TKT-001"},
         result={"status": "Open"},
     )
-    with patch("backend.api.routes.helpdesk.run_agent", return_value=("Ticket is Open", [mock_tool])):
+    with patch("backend.api.routes.helpdesk.run_agent", new_callable=AsyncMock, return_value=("Ticket is Open", [mock_tool])):
         response = client.post("/ask",
             json={"session_id": "test-s2", "message": "status of TKT-001", "employee_id": "EMP001"},
             headers=auth_headers,
@@ -33,23 +33,21 @@ def test_ask_returns_tools_used(client, auth_headers):
 
 
 def test_ask_maintains_session_history(client, auth_headers):
-    with patch("backend.api.routes.helpdesk.run_agent", return_value=("Reply 1", [])) as mock:
+    with patch("backend.api.routes.helpdesk.run_agent", new_callable=AsyncMock, return_value=("Reply 1", [])) as mock:
         client.post("/ask",
             json={"session_id": "test-s3", "message": "first message", "employee_id": "EMP001"},
             headers=auth_headers,
         )
-        # Second call — check history was passed
         client.post("/ask",
             json={"session_id": "test-s3", "message": "second message", "employee_id": "EMP001"},
             headers=auth_headers,
         )
-        # History passed to second call should contain first message
         second_call_history = mock.call_args[0][0]
         assert any(m["content"] == "first message" for m in second_call_history)
 
 
 def test_delete_session(client, auth_headers):
-    with patch("backend.api.routes.helpdesk.run_agent", return_value=("hi", [])):
+    with patch("backend.api.routes.helpdesk.run_agent", new_callable=AsyncMock, return_value=("hi", [])):
         client.post("/ask",
             json={"session_id": "test-s4", "message": "hello", "employee_id": "EMP001"},
             headers=auth_headers,

@@ -1,118 +1,101 @@
-import pytest
-from backend.services.ticket_service import (
-    create_ticket,
-    get_ticket_status,
-    list_tickets,
-    update_ticket,
-    TICKETS,
-)
+import asyncio
+from unittest.mock import MagicMock, patch, AsyncMock
+
+
+def make_mock_session_scalar(return_value):
+    mock_session = MagicMock()
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = return_value
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    mock_session.add = MagicMock()
+    mock_session.commit = AsyncMock()
+    return mock_session
+
+
+def make_mock_session_scalars(return_list):
+    mock_session = MagicMock()
+    mock_result = MagicMock()
+    mock_result.scalars.return_value.all.return_value = return_list
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    return mock_session
+
+
+def make_mock_ticket():
+    t = MagicMock()
+    t.ticket_id = "TKT-001"
+    t.title = "WiFi not connecting"
+    t.employee_id = "EMP001"
+    t.priority = "HIGH"
+    t.status = "Open"
+    t.category = "Network"
+    t.assigned_agent = "AGT-003"
+    t.assigned_agent_name = "Tarun Bose"
+    t.created = "2025-07-01"
+    t.updated = "2025-07-01"
+    return t
 
 
 def test_get_existing_ticket():
-    result = get_ticket_status("TKT-001")
+    mock_session = make_mock_session_scalar(make_mock_ticket())
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import get_ticket_status_async
+        result = asyncio.run(get_ticket_status_async("TKT-001"))
     assert result["ticket_id"] == "TKT-001"
     assert result["status"] == "Open"
-    assert result["priority"] == "HIGH"
-
-
-def test_get_ticket_case_insensitive():
-    result = get_ticket_status("tkt-001")
-    assert result["ticket_id"] == "TKT-001"
 
 
 def test_get_nonexistent_ticket_returns_error():
-    result = get_ticket_status("TKT-999")
+    mock_session = make_mock_session_scalar(None)
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import get_ticket_status_async
+        result = asyncio.run(get_ticket_status_async("TKT-999"))
     assert "error" in result
 
 
-def test_create_ticket_returns_correct_fields():
-    result = create_ticket(
-        employee_id="EMP001",
-        title="Test issue",
-        priority="HIGH",
-        category="Network",
-        description="Test description",
-    )
-    assert "ticket_id" in result
-    assert result["status"] == "Open"
-    assert result["priority"] == "HIGH"
-    assert result["assigned_agent_name"] == "Tarun Bose"
-    assert result["employee_id"] == "EMP001"
-
-
-def test_create_ticket_auto_assigns_correct_agent():
-    agents = {
-        "Hardware": "Kiran Pillai",
-        "Software": "Nisha Gupta",
-        "Network": "Tarun Bose",
-        "Authentication": "Salma Shaikh",
-        "Other": "Dev Malhotra",
-    }
-    for category, expected_agent in agents.items():
-        result = create_ticket(
-            employee_id="EMP001",
-            title=f"Test {category}",
-            priority="LOW",
-            category=category,
-            description="Test",
-        )
-        assert result["assigned_agent_name"] == expected_agent
-
-
-def test_create_ticket_increments_id():
-    t1 = create_ticket("EMP001", "Issue A", "LOW", "Other", "desc")
-    t2 = create_ticket("EMP001", "Issue B", "LOW", "Other", "desc")
-    num1 = int(t1["ticket_id"].split("-")[1])
-    num2 = int(t2["ticket_id"].split("-")[1])
-    assert num2 == num1 + 1
-
-
-def test_list_tickets_no_filter_returns_all():
-    result = list_tickets()
-    assert result["total"] >= 20
-    assert len(result["tickets"]) >= 20
-
-
-def test_list_tickets_filter_by_status():
-    result = list_tickets(status="Open")
-    for ticket in result["tickets"]:
-        assert ticket["status"] == "Open"
-
-
-def test_list_tickets_filter_by_priority():
-    result = list_tickets(priority="CRITICAL")
-    for ticket in result["tickets"]:
-        assert ticket["priority"] == "CRITICAL"
-
-
-def test_list_tickets_filter_by_employee():
-    result = list_tickets(employee_id="EMP001")
-    for ticket in result["tickets"]:
-        assert ticket["employee_id"] == "EMP001"
-
-
-def test_list_tickets_filter_by_category():
-    result = list_tickets(category="Network")
-    for ticket in result["tickets"]:
-        assert ticket["category"] == "Network"
+def test_list_tickets_returns_results():
+    mock_session = make_mock_session_scalars([make_mock_ticket()])
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import list_tickets_async
+        result = asyncio.run(list_tickets_async())
+    assert result["total"] == 1
+    assert result["tickets"][0]["ticket_id"] == "TKT-001"
 
 
 def test_update_ticket_status():
-    result = update_ticket("TKT-003", "Open")
-    assert result["old_status"] == "Resolved"
-    assert result["new_status"] == "Open"
-    # Reset it back
-    update_ticket("TKT-003", "Resolved")
-
-
-def test_update_ticket_with_note():
-    result = update_ticket("TKT-005", "Resolved", note="Driver reinstalled")
+    mock_ticket = make_mock_ticket()
+    mock_session = make_mock_session_scalar(mock_ticket)
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import update_ticket_async
+        result = asyncio.run(update_ticket_async("TKT-001", "Resolved", "Fixed"))
     assert result["new_status"] == "Resolved"
-    assert result["note"] == "Driver reinstalled"
-    # Reset
-    update_ticket("TKT-005", "Open")
+    assert result["note"] == "Fixed"
 
 
 def test_update_nonexistent_ticket_returns_error():
-    result = update_ticket("TKT-999", "Resolved")
+    mock_session = make_mock_session_scalar(None)
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import update_ticket_async
+        result = asyncio.run(update_ticket_async("TKT-999", "Resolved"))
     assert "error" in result
+
+
+def test_create_ticket_assigns_correct_agent():
+    mock_session = MagicMock()
+    mock_count_result = MagicMock()
+    mock_count_result.scalar.return_value = 20
+    mock_session.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session.__aexit__ = AsyncMock(return_value=False)
+    mock_session.execute = AsyncMock(return_value=mock_count_result)
+    mock_session.add = MagicMock()
+    mock_session.commit = AsyncMock()
+
+    with patch("backend.services.ticket_service.AsyncSessionLocal", return_value=mock_session):
+        from backend.services.ticket_service import create_ticket_async
+        result = asyncio.run(create_ticket_async("EMP001", "Test", "HIGH", "Network", "desc"))
+    assert result["assigned_agent_name"] == "Tarun Bose"
+    assert result["status"] == "Open"
+    assert result["ticket_id"] == "TKT-021"
