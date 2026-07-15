@@ -70,17 +70,19 @@ SaaS patterns (auth, rate limiting, async DB, session memory).
 ## 📁 Folder Structure
 
 ---
+# Project Structure
 
+```text
 aegis/
-├── PROGRESS.md                  ← project brain (this file)
-├── .env                         ← secrets (never commit)
-├── .env.example                 ← safe template (commit this)
+├── PROGRESS.md                  ← Project brain (this file)
+├── .env                         ← Secrets (never commit)
+├── .env.example                 ← Safe template (commit this)
 ├── .gitignore
 ├── pyproject.toml               ← uv manages dependencies here
 ├── backend/
 │   ├── main.py                  ← FastAPI app entry point
-│   ├── config.py                ← all settings via pydantic-settings
-│   ├── logger.py                ← centralised logging utility
+│   ├── config.py                ← All settings via pydantic-settings
+│   ├── logger.py                ← Centralized logging utility
 │   ├── api/
 │   │   ├── routes/
 │   │   │   ├── helpdesk.py      ← POST /ask, DELETE /session/{id}
@@ -88,23 +90,23 @@ aegis/
 │   │   │   └── health.py        ← GET /health
 │   │   └── middleware/
 │   │       ├── auth.py          ← API key header verification
-│   │       └── rate_limit.py    ← slowapi 30 req/min per key
+│   │       └── rate_limit.py    ← SlowAPI (30 req/min per API key)
 │   ├── agent/
 │   │   ├── groq_client.py       ← Groq SDK + tool-use loop
-│   │   ├── tools.py             ← 6 tool JSON schemas (OpenAI format)
-│   │   └── tool_executor.py     ← dispatches tool calls to services
+│   │   ├── tools.py             ← Tool JSON schemas
+│   │   └── tool_executor.py     ← Dispatches tool calls
 │   ├── services/
-│   │   ├── ticket_service.py    ← create/get/list/update tickets
-│   │   ├── employee_service.py  ← get employee info
-│   │   └── report_service.py    ← generate summary reports
+│   │   ├── ticket_service.py
+│   │   ├── employee_service.py
+│   │   └── report_service.py
 │   ├── db/
-│   │   ├── postgres.py          ← async SQLAlchemy engine + session
-│   │   ├── redis_session.py     ← save/load per-session chat history
-│   │   └── models.py            ← ORM table definitions
+│   │   ├── postgres.py          ← Async SQLAlchemy engine
+│   │   ├── redis_session.py     ← Session history
+│   │   └── models.py            ← ORM models
 │   └── schemas/
-│       ├── request.py           ← AskRequest Pydantic model
-│       └── response.py          ← AskResponse Pydantic model
-├── frontend/                    ← React app (Phase 3)
+│       ├── request.py
+│       └── response.py
+├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
 │   │   ├── components/
@@ -112,12 +114,12 @@ aegis/
 │   │   │   ├── MessageBubble.jsx
 │   │   │   └── ToolActivityPanel.jsx
 │   │   └── api/
-│   │       └── helpdesk.js      ← axios calls to FastAPI
+│   │       └── helpdesk.js
 │   └── package.json
 └── docker/
-├── Dockerfile               ← multi-stage build
-└── docker-compose.yml       ← app + postgres + redis
-
+    ├── Dockerfile
+    └── docker-compose.yml
+```
 ---
 
 ## ✅ Completed Steps
