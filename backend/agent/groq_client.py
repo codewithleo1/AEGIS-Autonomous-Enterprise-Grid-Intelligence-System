@@ -6,7 +6,6 @@ from backend.agent.tools import TOOLS
 from backend.config import settings
 from backend.schemas.response import ToolCall
 
-# The AEGIS system prompt — this shapes all of Groq's behaviour
 SYSTEM_PROMPT = """You are AEGIS (Autonomous Enterprise Grid Intelligence System),
 the Enterprise Helpdesk AI for TechCorp.
 
@@ -43,61 +42,59 @@ Your job is to help TechCorp employees with IT support requests by using your to
 """
 
 
-def run_agent(history: list[dict], new_message: str) -> tuple[str, list[ToolCall]]:
+async def run_agent(history: list[dict], new_message: str) -> tuple[str, list[ToolCall]]:
     """
     Run the Groq tool-use loop for one user turn.
-
-    Args:
-        history: Full conversation history from Redis (list of message dicts)
-        new_message: The user's latest message
-
-    Returns:
-        reply: AEGIS's final text response
-        tools_used: List of all tool calls made during this turn
+    Now fully async — no threading needed.
     """
+    from backend.agent.tool_executor import execute_tool
+
     client = Groq(api_key=settings.groq_api_key)
     tools_used: list[ToolCall] = []
 
-    # Build the messages list: system + history + new user message
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         *history,
         {"role": "user", "content": new_message},
     ]
 
-    # ── Tool-use loop ──────────────────────────────────────────────
-    # We loop because Groq may call multiple tools in one turn
-    # (e.g. get_employee_info then create_ticket)
+    max_retries = 2
+    attempt = 0
+
     while True:
-        response = client.chat.completions.create(
-            model=settings.groq_model,
-            messages=messages,
-            tools=TOOLS,
-            tool_choice="auto",  # Groq decides whether to use a tool
-        )
+        try:
+            response = client.chat.completions.create(
+                model=settings.groq_model,
+                messages=messages,
+                tools=TOOLS,
+                tool_choice="auto",
+            )
+        except Exception as e:
+            attempt += 1
+            if attempt <= max_retries:
+                response = client.chat.completions.create(
+                    model=settings.groq_model,
+                    messages=messages,
+                )
+                reply = response.choices[0].message.content
+                break
+            raise e
 
         choice = response.choices[0]
 
-        # ── OUTCOME B: Groq answered directly, no tool needed ──────
         if choice.finish_reason == "stop":
             reply = choice.message.content
             break
 
-        # ── OUTCOME A: Groq wants to call one or more tools ────────
         if choice.finish_reason == "tool_calls":
-            # Append Groq's assistant message (contains the tool call requests)
             messages.append(choice.message)
 
-            # Execute each tool call Groq requested
             for tool_call in choice.message.tool_calls:
                 tool_name = tool_call.function.name
                 tool_args = json.loads(tool_call.function.arguments)
 
-                # Import here to avoid circular imports
-                from backend.agent.tool_executor import execute_tool
-                tool_result = execute_tool(tool_name, tool_args)
+                tool_result = await execute_tool(tool_name, tool_args)
 
-                # Record this tool call for the response
                 tools_used.append(
                     ToolCall(
                         tool_name=tool_name,
@@ -106,8 +103,6 @@ def run_agent(history: list[dict], new_message: str) -> tuple[str, list[ToolCall
                     )
                 )
 
-                # Send the tool result back to Groq as role="tool"
-                # GOTCHA: must include tool_call_id to match the request
                 messages.append(
                     {
                         "role": "tool",
@@ -116,7 +111,6 @@ def run_agent(history: list[dict], new_message: str) -> tuple[str, list[ToolCall
                     }
                 )
 
-            # Loop again — Groq will now write the final human reply
             continue
 
     return reply, tools_used

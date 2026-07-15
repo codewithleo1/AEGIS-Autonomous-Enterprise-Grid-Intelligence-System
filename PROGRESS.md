@@ -140,7 +140,7 @@ aegis/
 - [x] Step 14: Test with curl + Swagger UI — 42/42 tests passing
 - [x] Step 15: Redis session store — redis_session.py (Upstash)
 - [x] Step 16: PostgreSQL models + async engine (Supabase)
-- [ ] Step 17: Replace mock services with real DB queries
+- [x] Step 17: Replace mock services with real DB queries
 - [ ] Step 18: React frontend
 - [ ] Step 19: Docker + docker-compose
 - [ ] Step 20: Deploy — Fly.io + Vercel + Upstash + Supabase
@@ -150,10 +150,10 @@ aegis/
 
 ## 🔄 Current Step
 
-**Step 17 — Replace mock services with real DB queries**
+**Step 18 — React Frontend**
 
-Last action: PostgreSQL tables created on Supabase, async engine connected, 42 tests passing
-Next action: Seed the DB with mock data, rewrite services to use real SQL queries
+Last action: 30/30 tests passing, Step 17 complete
+Next action: Build React + Vite chat UI
 
 ---
 
