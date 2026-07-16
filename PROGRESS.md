@@ -110,9 +110,10 @@ aegis/
 │   ├── src/
 │   │   ├── App.jsx
 │   │   ├── components/
-│   │   │   ├── ChatWindow.jsx
-│   │   │   ├── MessageBubble.jsx
-│   │   │   └── ToolActivityPanel.jsx
+│   │   │   ├── ChatPanel.jsx
+│   │   │   ├── Header.jsx
+│   │   │   ├── TicketSidebar.jsx
+│   │   │   └── ToolPanel.jsx
 │   │   └── api/
 │   │       └── helpdesk.js
 │   └── package.json
@@ -141,7 +142,7 @@ aegis/
 - [x] Step 15: Redis session store — redis_session.py (Upstash)
 - [x] Step 16: PostgreSQL models + async engine (Supabase)
 - [x] Step 17: Replace mock services with real DB queries
-- [ ] Step 18: React frontend
+- [x] Step 18: React frontend
 - [ ] Step 19: Docker + docker-compose
 - [ ] Step 20: Deploy — Fly.io + Vercel + Upstash + Supabase
 - [ ] Step 21: Final README + screenshots for portfolio
@@ -150,22 +151,20 @@ aegis/
 
 ## 🔄 Current Step
 
-**Step 18 — React Frontend**
+**Step 19 — Docker + docker-compose**
 
-Last action: 30/30 tests passing, Step 17 complete
-Next action: Build React + Vite chat UI
+Last action: Step 18 complete — three-panel React frontend live, 30/30 tests passing
+Next action: Write Dockerfile + docker-compose.yml
 
 ---
 
 ## ⏭️ Next Steps Queue
 
-1. Create seed script to populate employees + tickets in Supabase
-2. Rewrite employee_service.py — replace dict lookups with DB queries
-3. Rewrite ticket_service.py — replace dict operations with DB queries
-4. Rewrite report_service.py — replace in-memory aggregation with DB queries
-5. Update tests to work with real DB
-6. Run full test suite — confirm passing
-7. Commit and move to Step 18 — React frontend
+1. Write Dockerfile for FastAPI backend
+2. Write docker-compose.yml
+3. Write .dockerignore
+4. Test docker-compose up builds and runs clean
+5. Commit and move to Step 20 — Deploy
 
 ---
 
@@ -189,6 +188,9 @@ Next action: Build React + Vite chat UI
 | 12 | Supabase direct connection fails on Windows (IPv6 issue) | Use Session Pooler URL: aws-X-ap-south-1.pooler.supabase.com |
 | 13 | Password with special chars (@ # $) in DATABASE_URL breaks URI | Use only letters and numbers in DB password |
 | 14 | New-Item in PowerShell creates empty files | Use write_*.py helper scripts to write file content |
+| 15 | Docker on Windows: line endings break container startup | Always have .gitattributes with * text=auto before building |
+| 16 | frontend/.env contains API key — must never be committed | Add frontend/.env to .gitignore |
+| 17 | tool_executor TOOL_MAP captures function refs at import time — patches miss | Use getattr on module object at call time instead |
 
 ---
 
