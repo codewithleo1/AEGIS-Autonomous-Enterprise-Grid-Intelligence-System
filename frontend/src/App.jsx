@@ -3,16 +3,26 @@ import Header from './components/Header.jsx'
 import TicketSidebar from './components/TicketSidebar.jsx'
 import ChatPanel from './components/ChatPanel.jsx'
 import ToolPanel from './components/ToolPanel.jsx'
+import LoginPage from './components/LoginPage.jsx'
 import { askAegis, fetchTickets, fetchHealth, deleteSession } from './api/helpdesk.js'
 
-const SESSION_ID  = 'session-' + Math.random().toString(36).slice(2, 9)
-let   EMPLOYEE_ID = 'UNKNOWN'
+const SESSION_ID = 'session-' + Math.random().toString(36).slice(2, 9)
 
 export default function App() {
+  const [user, setUser]           = useState(null)
   const [tickets, setTickets]     = useState([])
   const [ticketsLoading, setTL]   = useState(false)
   const [health, setHealth]       = useState(false)
   const [toolLogs, setToolLogs]   = useState([])
+
+  // Check for existing session on load
+  useEffect(() => {
+    const stored = localStorage.getItem('aegis_user')
+    const token  = localStorage.getItem('aegis_token')
+    if (stored && token) {
+      setUser(JSON.parse(stored))
+    }
+  }, [])
 
   const stats = {
     total: tickets.length,
@@ -30,21 +40,18 @@ export default function App() {
   }, [])
 
   useEffect(() => {
+    if (!user) return
     fetchHealth().then(() => setHealth(true)).catch(() => setHealth(false))
     loadTickets()
     const interval = setInterval(loadTickets, 15000)
     return () => clearInterval(interval)
-  }, [loadTickets])
+  }, [user, loadTickets])
 
   async function handleMessage(message) {
-    // Extract employee ID from message if present
-    const match = message.match(/EMP\d+/i)
-    if (match) EMPLOYEE_ID = match[0].toUpperCase()
-
     return await askAegis({
       sessionId:  SESSION_ID,
       message:    message,
-      employeeId: EMPLOYEE_ID,
+      employeeId: user?.id || 'UNKNOWN',
     })
   }
 
@@ -52,9 +59,22 @@ export default function App() {
     setToolLogs(prev => [...prev, { timestamp: Date.now(), tools }])
   }
 
+  function handleLogout() {
+    localStorage.removeItem('aegis_token')
+    localStorage.removeItem('aegis_user')
+    setUser(null)
+    setTickets([])
+    setToolLogs([])
+  }
+
+  // Show login if not authenticated
+  if (!user) {
+    return <LoginPage onLogin={setUser} />
+  }
+
   return (
     <div className="h-screen flex flex-col bg-slate-900 overflow-hidden">
-      <Header health={health} stats={stats} />
+      <Header health={health} stats={stats} user={user} onLogout={handleLogout} />
       <div className="flex flex-1 overflow-hidden">
         <TicketSidebar tickets={tickets} loading={ticketsLoading} onRefresh={loadTickets} />
         <ChatPanel
