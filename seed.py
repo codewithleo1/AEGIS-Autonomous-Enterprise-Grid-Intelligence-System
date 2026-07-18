@@ -6,26 +6,38 @@ import asyncio
 
 from sqlalchemy import text
 
-from backend.db.models import Employee, Ticket
+from backend.db.models import Agent, Employee, Ticket
 from backend.db.postgres import AsyncSessionLocal, create_tables
 from backend.logger import setup_logger
+from backend.services.auth_service import hash_password
 
 logger = setup_logger("seed")
 
+# Default password for all users in development
+DEFAULT_PASSWORD = hash_password("aegis1234")
+
 EMPLOYEES = [
-    Employee(employee_id="EMP001", name="Raj Sharma", department="Engineering", email="raj.sharma@techcorp.com", manager="EMP010", location="Mumbai"),
-    Employee(employee_id="EMP002", name="Priya Patel", department="Human Resources", email="priya.patel@techcorp.com", manager="EMP011", location="Bangalore"),
-    Employee(employee_id="EMP003", name="Amit Verma", department="Finance", email="amit.verma@techcorp.com", manager="EMP012", location="Delhi"),
-    Employee(employee_id="EMP004", name="Sneha Iyer", department="Marketing", email="sneha.iyer@techcorp.com", manager="EMP010", location="Mumbai"),
-    Employee(employee_id="EMP005", name="Rohan Mehta", department="Engineering", email="rohan.mehta@techcorp.com", manager="EMP010", location="Pune"),
-    Employee(employee_id="EMP006", name="Kavya Nair", department="Marketing", email="kavya.nair@techcorp.com", manager="EMP010", location="Mumbai"),
-    Employee(employee_id="EMP007", name="Arjun Das", department="Finance", email="arjun.das@techcorp.com", manager="EMP012", location="Delhi"),
-    Employee(employee_id="EMP008", name="Meera Joshi", department="Human Resources", email="meera.joshi@techcorp.com", manager="EMP011", location="Bangalore"),
-    Employee(employee_id="EMP009", name="Siddharth Rao", department="Engineering", email="siddharth.rao@techcorp.com", manager="EMP010", location="Pune"),
-    Employee(employee_id="EMP010", name="Vikram Nair", department="Engineering", email="vikram.nair@techcorp.com", manager="EMP020", location="Mumbai"),
-    Employee(employee_id="EMP011", name="Deepa Rao", department="HR Lead", email="deepa.rao@techcorp.com", manager="EMP020", location="Bangalore"),
-    Employee(employee_id="EMP012", name="Suresh Kumar", department="Finance Lead", email="suresh.k@techcorp.com", manager="EMP020", location="Delhi"),
-    Employee(employee_id="EMP020", name="Anita Desai", department="CTO", email="anita.desai@techcorp.com", manager=None, location="Mumbai"),
+    Employee(employee_id="EMP001", name="Raj Sharma", department="Engineering", email="raj.sharma@techcorp.com", manager="EMP010", location="Mumbai", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP002", name="Priya Patel", department="Human Resources", email="priya.patel@techcorp.com", manager="EMP011", location="Bangalore", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP003", name="Amit Verma", department="Finance", email="amit.verma@techcorp.com", manager="EMP012", location="Delhi", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP004", name="Sneha Iyer", department="Marketing", email="sneha.iyer@techcorp.com", manager="EMP010", location="Mumbai", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP005", name="Rohan Mehta", department="Engineering", email="rohan.mehta@techcorp.com", manager="EMP010", location="Pune", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP006", name="Kavya Nair", department="Marketing", email="kavya.nair@techcorp.com", manager="EMP010", location="Mumbai", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP007", name="Arjun Das", department="Finance", email="arjun.das@techcorp.com", manager="EMP012", location="Delhi", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP008", name="Meera Joshi", department="Human Resources", email="meera.joshi@techcorp.com", manager="EMP011", location="Bangalore", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP009", name="Siddharth Rao", department="Engineering", email="siddharth.rao@techcorp.com", manager="EMP010", location="Pune", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP010", name="Vikram Nair", department="Engineering", email="vikram.nair@techcorp.com", manager="EMP020", location="Mumbai", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP011", name="Deepa Rao", department="HR Lead", email="deepa.rao@techcorp.com", manager="EMP020", location="Bangalore", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP012", name="Suresh Kumar", department="Finance Lead", email="suresh.k@techcorp.com", manager="EMP020", location="Delhi", password_hash=DEFAULT_PASSWORD),
+    Employee(employee_id="EMP020", name="Anita Desai", department="CTO", email="anita.desai@techcorp.com", manager=None, location="Mumbai", password_hash=DEFAULT_PASSWORD),
+]
+
+AGENTS = [
+    Agent(agent_id="AGT-001", name="Kiran Pillai", email="kiran.pillai@techcorp.com", specialisation="Hardware", password_hash=DEFAULT_PASSWORD),
+    Agent(agent_id="AGT-002", name="Nisha Gupta", email="nisha.gupta@techcorp.com", specialisation="Software", password_hash=DEFAULT_PASSWORD),
+    Agent(agent_id="AGT-003", name="Tarun Bose", email="tarun.bose@techcorp.com", specialisation="Network", password_hash=DEFAULT_PASSWORD),
+    Agent(agent_id="AGT-004", name="Salma Shaikh", email="salma.shaikh@techcorp.com", specialisation="Authentication", password_hash=DEFAULT_PASSWORD),
+    Agent(agent_id="AGT-005", name="Dev Malhotra", email="dev.malhotra@techcorp.com", specialisation="General / Other", password_hash=DEFAULT_PASSWORD),
 ]
 
 TICKETS = [
@@ -56,29 +68,37 @@ async def seed():
     await create_tables()
 
     async with AsyncSessionLocal() as session:
-        # Clear existing data
         await session.execute(text("DELETE FROM tickets"))
+        await session.execute(text("DELETE FROM agents"))
         await session.execute(text("DELETE FROM employees"))
         await session.commit()
         logger.info("Cleared existing data")
 
-        # Insert in order — EMP020 first (no manager), then managers, then everyone else
-        ordered = ["EMP020", "EMP010", "EMP011", "EMP012", "EMP001", "EMP002", "EMP003", "EMP004", "EMP005", "EMP006", "EMP007", "EMP008", "EMP009"]
-        emp_map = {e.employee_id: e for e in EMPLOYEES}
-
-        for emp_id in ordered:
-            session.add(emp_map[emp_id])
-            await session.commit()
-
+        # Insert in order: top-level first, then reports
+        ordered = [
+            next(e for e in EMPLOYEES if e.employee_id == "EMP020"),  # CTO
+            next(e for e in EMPLOYEES if e.employee_id == "EMP010"),  # Eng Lead
+            next(e for e in EMPLOYEES if e.employee_id == "EMP011"),  # HR Lead
+            next(e for e in EMPLOYEES if e.employee_id == "EMP012"),  # Finance Lead
+            *[e for e in EMPLOYEES if e.employee_id not in {"EMP020", "EMP010", "EMP011", "EMP012"}],
+        ]
+        for emp in ordered:
+            session.add(emp)
+        await session.commit()
         logger.info("Seeded %d employees", len(EMPLOYEES))
 
-        # Insert tickets
+        for agent in AGENTS:
+            session.add(agent)
+        await session.commit()
+        logger.info("Seeded %d agents", len(AGENTS))
+
         for ticket in TICKETS:
             session.add(ticket)
         await session.commit()
         logger.info("Seeded %d tickets", len(TICKETS))
 
     logger.info("Seed complete")
+    logger.info("Default password for all users: aegis1234")
 
 
 if __name__ == "__main__":
