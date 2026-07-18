@@ -1,8 +1,14 @@
 from fastapi import APIRouter, Query
+from pydantic import BaseModel
 
-from backend.services.ticket_service import list_tickets_async
+from backend.services.ticket_service import list_tickets_async, update_ticket_async
 
 router = APIRouter()
+
+
+class TicketUpdateRequest(BaseModel):
+    status: str
+    note: str | None = None
 
 
 @router.get("/tickets")
@@ -18,4 +24,17 @@ async def get_tickets(
         status=status,
         priority=priority,
         category=category,
+    )
+
+
+@router.patch("/tickets/{ticket_id}")
+async def patch_ticket(
+    ticket_id: str,
+    body: TicketUpdateRequest,
+):
+    """Update ticket status. Used by the agent dashboard."""
+    return await update_ticket_async(
+        ticket_id=ticket_id,
+        status=body.status,
+        note=body.note,
     )
