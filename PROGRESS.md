@@ -145,16 +145,16 @@ aegis/
 - [x] Step 18: React frontend
 - [x] Step 19: Docker + docker-compose
 - [x] Step 20: Deploy — Render + Vercel + Upstash + Supabase
-- [ ] Step 21: Final README + screenshots for portfolio
+- [x] Step 21: Final README + screenshots for portfolio
 
 ---
 
 ## 🔄 Current Step
 
-**Step 21 — Final README + screenshots for portfolio**
+**PROJECT COMPLETE ✅**
 
-Last action: Step 20 complete — backend live on Render, frontend live on Vercel
-Next action: Write README.md with architecture diagram, screenshots, setup guide
+Last action: README published, all steps done, live on Render + Vercel
+Next action: Add to portfolio, apply for AI Engineer roles
 
 ---
 
