@@ -146,15 +146,16 @@ aegis/
 - [x] Step 19: Docker + docker-compose
 - [x] Step 20: Deploy — Render + Vercel + Upstash + Supabase
 - [x] Step 21: Final README + screenshots for portfolio
+- [x] Step 22: JWT Auth + Agent Dashboard
 
 ---
 
 ## 🔄 Current Step
 
-**PROJECT COMPLETE ✅**
+**Step 22 COMPLETE ✅**
 
-Last action: README published, all steps done, live on Render + Vercel
-Next action: Add to portfolio, apply for AI Engineer roles
+Last action: JWT auth + agent dashboard live on Vercel
+Next action: Seed production DB with agent passwords, update PROGRESS.md
 
 ---
 
@@ -193,6 +194,8 @@ Next action: Add to portfolio, apply for AI Engineer roles
 | 17 | tool_executor TOOL_MAP captures function refs at import time — patches miss | Use getattr on module object at call time instead |
 | 18 | Render free tier uses Python 3.14 by default — breaks dependencies | Add runtime.txt with 3.12.0 to pin version |
 | 19 | Sync wrappers calling asyncio.run() inside uvicorn fail in Docker/Linux | Always call async functions directly from async routes |
+| 20 | Multiple uvicorn processes on port 8000 from previous sessions | Run netstat -ano | findstr :8000 and kill all PIDs before restarting |
+| 21 | bcrypt 5.x incompatible with passlib — hash fails | Pin bcrypt==4.0.1 |
 
 ---
 
