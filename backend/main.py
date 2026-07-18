@@ -35,7 +35,10 @@ app = FastAPI(
 # CORS must be added BEFORE APIKeyMiddleware so preflight passes through
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://aegis-autonomous-enterprise-grid-in-seven.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
