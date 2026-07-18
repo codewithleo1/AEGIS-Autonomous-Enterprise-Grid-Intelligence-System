@@ -31,7 +31,7 @@ production-grade AI systems using Groq's API with real
 SaaS patterns (auth, rate limiting, async DB, session memory).
 
 **GitHub:** https://github.com/codewithleo1/AEGIS-Autonomous-Enterprise-Grid-Intelligence-System
-**Live Demo:** [add deployed URL here]
+**Live Demo:** https://aegis-autonomous-enterprise-grid-in-seven.vercel.app
 
 ---
 
@@ -58,7 +58,7 @@ SaaS patterns (auth, rate limiting, async DB, session memory).
 | ORM | SQLAlchemy async | 2.0+ | Free |
 | Frontend | React + Vite | latest | Free |
 | Frontend Hosting | Vercel | latest | Free tier |
-| Backend Hosting | Fly.io | latest | Free tier (3 VMs) |
+| Backend Hosting | Render | latest | Free tier (750 hrs/month) |
 | Deployment | Docker + docker-compose | latest | Free |
 | Linter | Ruff | latest | Free |
 | CI/CD | GitHub Actions | latest | Free (2000 min/month) |
@@ -143,28 +143,28 @@ aegis/
 - [x] Step 16: PostgreSQL models + async engine (Supabase)
 - [x] Step 17: Replace mock services with real DB queries
 - [x] Step 18: React frontend
-- [ ] Step 19: Docker + docker-compose
-- [ ] Step 20: Deploy — Fly.io + Vercel + Upstash + Supabase
+- [x] Step 19: Docker + docker-compose
+- [x] Step 20: Deploy — Render + Vercel + Upstash + Supabase
 - [ ] Step 21: Final README + screenshots for portfolio
 
 ---
 
 ## 🔄 Current Step
 
-**Step 19 — Docker + docker-compose**
+**Step 21 — Final README + screenshots for portfolio**
 
-Last action: Step 18 complete — three-panel React frontend live, 30/30 tests passing
-Next action: Write Dockerfile + docker-compose.yml
+Last action: Step 20 complete — backend live on Render, frontend live on Vercel
+Next action: Write README.md with architecture diagram, screenshots, setup guide
 
 ---
 
 ## ⏭️ Next Steps Queue
 
-1. Write Dockerfile for FastAPI backend
-2. Write docker-compose.yml
-3. Write .dockerignore
-4. Test docker-compose up builds and runs clean
-5. Commit and move to Step 20 — Deploy
+1. Write README.md — project description, architecture, setup instructions
+2. Take screenshots of live app for portfolio
+3. Update portfolio notes with live URLs
+4. Final git push
+5. Project complete ✅
 
 ---
 
@@ -191,6 +191,8 @@ Next action: Write Dockerfile + docker-compose.yml
 | 15 | Docker on Windows: line endings break container startup | Always have .gitattributes with * text=auto before building |
 | 16 | frontend/.env contains API key — must never be committed | Add frontend/.env to .gitignore |
 | 17 | tool_executor TOOL_MAP captures function refs at import time — patches miss | Use getattr on module object at call time instead |
+| 18 | Render free tier uses Python 3.14 by default — breaks dependencies | Add runtime.txt with 3.12.0 to pin version |
+| 19 | Sync wrappers calling asyncio.run() inside uvicorn fail in Docker/Linux | Always call async functions directly from async routes |
 
 ---
 
@@ -209,8 +211,7 @@ Next action: Write Dockerfile + docker-compose.yml
 | Async SQLAlchemy | Non-blocking DB = handles more concurrent users |
 | Ruff over flake8+black | One tool replaces both, runs faster |
 | Mock services first, real DB later | Lets us test tool loop without DB setup complexity |
-| Fly.io over Render/Railway | Render removed free tier; Fly.io still has 3 free shared VMs |
-| Vercel for frontend | Best free static + React hosting, zero config |
+| Render over Fly.io/Railway | Render has permanent free tier (750 hrs/month), no card required, auto-deploys from GitHub || Vercel for frontend | Best free static + React hosting, zero config |
 | 6 tools (added update_ticket) | Tickets need to be resolved; completes the helpdesk workflow |
 | Centralised logger.py | Standard in production; logs every tool call for debugging |
 | Session Pooler over Direct connection | Direct connection uses IPv6 which fails on Windows/some networks |
@@ -241,7 +242,7 @@ Next action: Write Dockerfile + docker-compose.yml
 > using Groq's API with llama-3.3-70b-versatile, replacing LangChain entirely.
 > The system routes employee queries to 6 business tools using OpenAI-compatible
 > function calling, maintains per-session memory in Redis on Upstash, and is
-> deployed on Fly.io with a FastAPI backend and PostgreSQL on Supabase.
+> deployed on Render with a FastAPI backend and PostgreSQL on Supabase.
 > I chose Groq over other providers because it's completely free at scale
 > and its LPU hardware delivers significantly faster inference than GPU-based APIs."
 
