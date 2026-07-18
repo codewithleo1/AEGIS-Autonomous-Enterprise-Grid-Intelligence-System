@@ -38,6 +38,7 @@ app.add_middleware(
         "http://localhost:5173",
         "http://localhost:5174",
         "https://aegis-autonomous-enterprise-grid-in-seven.vercel.app",
+        "https://aegis-autonomous-enterprise-grid-in-alpha.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
