@@ -1,5 +1,3 @@
-import asyncio
-import concurrent.futures
 from datetime import datetime
 
 from sqlalchemy import func, select
@@ -17,17 +15,6 @@ AGENT_POOL = {
     "Authentication": {"agent_id": "AGT-004", "name": "Salma Shaikh"},
     "Other": {"agent_id": "AGT-005", "name": "Dev Malhotra"},
 }
-
-
-def _run(coro):
-    """Run async coroutine safely whether or not an event loop is already running."""
-    try:
-        asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            future = pool.submit(asyncio.run, coro)
-            return future.result()
-    except RuntimeError:
-        return asyncio.run(coro)
 
 
 async def _get_next_ticket_id(session) -> str:
@@ -148,19 +135,3 @@ async def update_ticket_async(ticket_id: str, status: str, note: str | None = No
             "note": note or "",
             "updated_at": ticket.updated,
         }
-
-
-def create_ticket(employee_id: str, title: str, priority: str, category: str, description: str) -> dict:
-    return _run(create_ticket_async(employee_id, title, priority, category, description))
-
-
-def get_ticket_status(ticket_id: str) -> dict:
-    return _run(get_ticket_status_async(ticket_id))
-
-
-def list_tickets(employee_id=None, status=None, priority=None, category=None) -> dict:
-    return _run(list_tickets_async(employee_id, status, priority, category))
-
-
-def update_ticket(ticket_id: str, status: str, note: str | None = None) -> dict:
-    return _run(update_ticket_async(ticket_id, status, note))
