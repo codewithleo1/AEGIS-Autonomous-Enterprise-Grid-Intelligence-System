@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     # API Security
     aegis_api_key: str
 
+    # JWT Auth
+    jwt_secret: str
+
     # Upstash Redis
     upstash_redis_rest_url: str
     upstash_redis_rest_token: str

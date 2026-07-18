@@ -1,4 +1,3 @@
-
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -16,6 +15,17 @@ class Employee(Base):
     email: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
     manager: Mapped[str | None] = mapped_column(String(10), ForeignKey("employees.employee_id"), nullable=True)
     location: Mapped[str] = mapped_column(String(100), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+
+class Agent(Base):
+    __tablename__ = "agents"
+
+    agent_id: Mapped[str] = mapped_column(String(10), primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(150), nullable=False, unique=True)
+    specialisation: Mapped[str] = mapped_column(String(100), nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class Ticket(Base):

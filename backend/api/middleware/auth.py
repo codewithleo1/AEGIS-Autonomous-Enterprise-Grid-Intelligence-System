@@ -4,12 +4,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from backend.config import settings
 
-PUBLIC_ROUTES = {"/health", "/docs", "/openapi.json", "/redoc"}
+PUBLIC_ROUTES = {"/health", "/docs", "/openapi.json", "/redoc", "/auth/login"}
 
 
 class APIKeyMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
-        # Allow CORS preflight through — browser sends OPTIONS before every POST
+        # DEBUG — remove after fix
+        print(f"PATH: '{request.url.path}'")
+
         if request.method == "OPTIONS":
             return await call_next(request)
 

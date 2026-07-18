@@ -7,7 +7,7 @@ from slowapi.errors import RateLimitExceeded
 
 from backend.api.middleware.auth import APIKeyMiddleware
 from backend.api.middleware.rate_limit import limiter
-from backend.api.routes import health, helpdesk, tickets
+from backend.api.routes import auth, health, helpdesk, tickets
 from backend.config import settings
 from backend.db.postgres import create_tables
 from backend.logger import setup_logger
@@ -32,11 +32,11 @@ app = FastAPI(
 )
 
 # ── Middleware ────────────────────────────────────────────────────
-# CORS must be added BEFORE APIKeyMiddleware so preflight passes through
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:5174",
         "https://aegis-autonomous-enterprise-grid-in-seven.vercel.app",
     ],
     allow_credentials=True,
@@ -50,5 +50,6 @@ app.add_middleware(APIKeyMiddleware)
 
 # ── Routes ────────────────────────────────────────────────────────
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(helpdesk.router)
 app.include_router(tickets.router)
