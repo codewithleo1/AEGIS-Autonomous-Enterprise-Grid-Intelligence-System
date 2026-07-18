@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 
-from backend.services.ticket_service import list_tickets
+from backend.services.ticket_service import list_tickets_async
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ async def get_tickets(
     category: str | None = Query(default=None, description="Filter by category"),
 ):
     """List tickets with optional filters. Used by the frontend dashboard."""
-    return list_tickets(
+    return await list_tickets_async(
         employee_id=employee_id,
         status=status,
         priority=priority,
