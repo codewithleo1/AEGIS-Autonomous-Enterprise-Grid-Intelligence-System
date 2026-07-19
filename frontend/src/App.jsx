@@ -54,6 +54,7 @@ export default function App() {
       employeeId: user?.id || 'UNKNOWN',
     })
   }
+  
 
   function handleToolLog(tools) {
     setToolLogs(prev => [...prev, { timestamp: Date.now(), tools }])

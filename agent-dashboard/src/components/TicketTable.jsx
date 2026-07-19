@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { RefreshCw, Filter } from 'lucide-react'
 
+const PRIORITY_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
+
 const PRIORITY_STYLES = {
   CRITICAL: 'text-red-300 bg-red-300/10 border-red-300/20',
   HIGH:     'text-red-400 bg-red-400/10 border-red-400/20',
@@ -15,24 +17,75 @@ const STATUS_STYLES = {
 }
 
 export default function TicketTable({ tickets, loading, onRefresh, onUpdateTicket }) {
-  const [statusFilter, setStatusFilter]   = useState('')
+  const [statusFilter, setStatusFilter]     = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
-  const [updatingId, setUpdatingId]       = useState(null)
+  const [updatingId, setUpdatingId]         = useState(null)
+  const [resolutionNote, setResolutionNote] = useState('')
+  const [pendingResolve, setPendingResolve] = useState(null)
 
-  const filtered = tickets.filter(t => {
-    if (statusFilter && t.status !== statusFilter) return false
-    if (priorityFilter && t.priority !== priorityFilter) return false
-    return true
-  })
+  const filtered = tickets
+    .filter(t => {
+      if (statusFilter && t.status !== statusFilter) return false
+      if (priorityFilter && t.priority !== priorityFilter) return false
+      return true
+    })
+    .sort((a, b) => (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99))
 
   async function handleStatusChange(ticketId, newStatus) {
+    if (newStatus === 'Resolved') {
+      setPendingResolve(ticketId)
+      return
+    }
     setUpdatingId(ticketId)
     await onUpdateTicket(ticketId, newStatus)
     setUpdatingId(null)
   }
 
+  async function confirmResolve() {
+    setUpdatingId(pendingResolve)
+    await onUpdateTicket(pendingResolve, 'Resolved', resolutionNote)
+    setPendingResolve(null)
+    setResolutionNote('')
+    setUpdatingId(null)
+  }
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden p-6">
+
+      {/* Resolution Note Modal */}
+      {pendingResolve && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-2xl p-6 border border-slate-700 w-full max-w-md">
+            <h2 className="text-sm font-semibold text-white mb-1">Resolve Ticket</h2>
+            <p className="text-xs text-slate-400 mb-4">
+              Add a resolution note before closing <span className="text-emerald-400 font-mono">{pendingResolve}</span>
+            </p>
+            <textarea
+              value={resolutionNote}
+              onChange={e => setResolutionNote(e.target.value)}
+              placeholder="Describe what fixed the issue..."
+              rows={3}
+              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-500 resize-none focus:outline-none focus:border-emerald-500 mb-4"
+            />
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setPendingResolve(null); setResolutionNote('') }}
+                className="flex-1 py-2 rounded-lg border border-slate-600 text-sm text-slate-400 hover:bg-slate-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmResolve}
+                disabled={!resolutionNote.trim()}
+                className="flex-1 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-sm text-white font-semibold transition-colors"
+              >
+                Mark Resolved
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
