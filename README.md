@@ -277,7 +277,7 @@ aegis/
 
 ## 👨‍💻 Built By
 
-**Leo** — AI Engineer  
+**Suraj Chopade** — AI Engineer  
 [Code With Leo](https://github.com/codewithleo1) · Building production-grade AI systems
 
 ---
