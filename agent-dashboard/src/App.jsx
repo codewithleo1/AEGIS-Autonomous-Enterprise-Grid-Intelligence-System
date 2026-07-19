@@ -38,9 +38,14 @@ export default function App() {
 
   async function handleUpdateTicket(ticketId, status) {
     try {
+      const token = localStorage.getItem('aegis_agent_token')
       await fetch(`${BASE_URL}/tickets/${ticketId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': API_KEY,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ status }),
       })
       await loadTickets()

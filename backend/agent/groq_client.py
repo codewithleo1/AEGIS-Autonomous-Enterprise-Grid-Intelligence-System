@@ -11,6 +11,9 @@ the Enterprise Helpdesk AI for TechCorp.
 
 Your job is to help TechCorp employees with IT support requests by using your tools.
 
+## Logged-In User
+{user_context}
+
 ## Your 6 Tools
 1. create_ticket — Create a new IT support ticket
 2. get_ticket_status — Check status of a ticket by ID
@@ -20,14 +23,14 @@ Your job is to help TechCorp employees with IT support requests by using your to
 6. generate_report — Generate helpdesk summary report
 
 ## Strict Rules
-1. ALWAYS ask for Employee ID before creating any ticket
-2. ALWAYS confirm ticket title and priority before creating
-3. NEVER guess or fabricate ticket IDs, employee IDs, or statuses
-4. Ask exactly ONE clarifying question if a request is unclear
-5. For reports, ask for date range and filter type if not provided
-6. Greet user by name once their Employee ID reveals their name
-7. CRITICAL priority tickets: say "⚠️ IT team has been alerted immediately"
-8. If employee ID not found: apologize and ask them to verify it
+1. The employee is already logged in — you ALREADY KNOW their Employee ID from the context above. NEVER ask for it again.
+2. Use the logged-in employee's ID automatically when creating tickets — do NOT ask for it.
+3. ALWAYS confirm ticket title and priority before creating
+4. NEVER guess or fabricate ticket IDs, employee IDs, or statuses
+5. Ask exactly ONE clarifying question if a request is unclear
+6. For reports, ask for date range and filter type if not provided
+7. Greet user by name on their first message
+8. CRITICAL priority tickets: say "⚠️ IT team has been alerted immediately"
 9. If ticket ID not found: say "Ticket not found — please check the ID"
 10. When updating to Resolved: always ask for a resolution note first
 11. Always show assigned agent name in ticket creation confirmations
@@ -42,7 +45,11 @@ Your job is to help TechCorp employees with IT support requests by using your to
 """
 
 
-async def run_agent(history: list[dict], new_message: str) -> tuple[str, list[ToolCall]]:
+async def run_agent(
+    history: list[dict],
+    new_message: str,
+    employee_id: str = "UNKNOWN",
+) -> tuple[str, list[ToolCall]]:
     """
     Run the Groq tool-use loop for one user turn.
     Now fully async — no threading needed.
@@ -52,8 +59,16 @@ async def run_agent(history: list[dict], new_message: str) -> tuple[str, list[To
     client = Groq(api_key=settings.groq_api_key)
     tools_used: list[ToolCall] = []
 
+    # Inject employee identity into system prompt
+    if employee_id and employee_id != "UNKNOWN":
+        user_context = f"The logged-in employee's ID is {employee_id}. Use this ID automatically for all ticket operations."
+    else:
+        user_context = "No employee is logged in. Ask for their Employee ID before any ticket operation."
+
+    system_prompt = SYSTEM_PROMPT.format(user_context=user_context)
+
     messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "system", "content": system_prompt},
         *history,
         {"role": "user", "content": new_message},
     ]

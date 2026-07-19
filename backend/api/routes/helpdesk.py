@@ -14,7 +14,11 @@ router = APIRouter()
 async def ask(request: Request, body: AskRequest):
     session_id = body.session_id
     history = load_session(session_id)
-    reply, tools_used = await run_agent(history, body.message)
+    reply, tools_used = await run_agent(
+        history=history,
+        new_message=body.message,
+        employee_id=body.employee_id or "UNKNOWN",
+    )
     history.append({"role": "user", "content": body.message})
     history.append({"role": "assistant", "content": reply})
     save_session(session_id, history)

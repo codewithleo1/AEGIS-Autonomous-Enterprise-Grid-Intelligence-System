@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
+from backend.api.middleware.jwt_auth import get_current_user
 from backend.services.ticket_service import list_tickets_async, update_ticket_async
 
 router = APIRouter()
@@ -13,12 +14,21 @@ class TicketUpdateRequest(BaseModel):
 
 @router.get("/tickets")
 async def get_tickets(
-    employee_id: str | None = Query(default=None, description="Filter by employee ID"),
-    status: str | None = Query(default=None, description="Filter by status"),
-    priority: str | None = Query(default=None, description="Filter by priority"),
-    category: str | None = Query(default=None, description="Filter by category"),
+    status: str | None = Query(default=None),
+    priority: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+    current_user: dict = Depends(get_current_user),
 ):
-    """List tickets with optional filters. Used by the frontend dashboard."""
+    """
+    List tickets.
+    - Employees see only their own tickets.
+    - Agents see all tickets.
+    """
+    # Scope by employee ID if role is employee
+    employee_id = None
+    if current_user["role"] == "employee":
+        employee_id = current_user["id"]
+
     return await list_tickets_async(
         employee_id=employee_id,
         status=status,
@@ -31,8 +41,13 @@ async def get_tickets(
 async def patch_ticket(
     ticket_id: str,
     body: TicketUpdateRequest,
+    current_user: dict = Depends(get_current_user),
 ):
-    """Update ticket status. Used by the agent dashboard."""
+    """Update ticket status. Agents only."""
+    if current_user["role"] != "agent":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=403, detail="Agent access required.")
+
     return await update_ticket_async(
         ticket_id=ticket_id,
         status=body.status,
