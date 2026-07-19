@@ -32,11 +32,11 @@ export default function App() {
     if (!agent) return
     fetch(`${BASE_URL}/health`).then(() => setHealth(true)).catch(() => setHealth(false))
     loadTickets()
-    const interval = setInterval(loadTickets, 15000)
+    const interval = setInterval(loadTickets, 60000)
     return () => clearInterval(interval)
   }, [agent, loadTickets])
 
-  async function handleUpdateTicket(ticketId, status) {
+  async function handleUpdateTicket(ticketId, status, note = '') {
     try {
       const token = localStorage.getItem('aegis_agent_token')
       await fetch(`${BASE_URL}/tickets/${ticketId}`, {
@@ -46,7 +46,7 @@ export default function App() {
           'X-API-Key': API_KEY,
           ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({ status, note }),
       })
       await loadTickets()
     } catch(e) { console.error(e) }
