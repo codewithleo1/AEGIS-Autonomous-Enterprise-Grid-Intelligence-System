@@ -1,11 +1,9 @@
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-const API_KEY  = import.meta.env.VITE_API_KEY  || 'aegis-secret-123'
 
 function getAuthHeaders() {
   const token = localStorage.getItem('aegis_token')
   return {
     'Content-Type': 'application/json',
-    'X-API-Key': API_KEY,
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
   }
 }

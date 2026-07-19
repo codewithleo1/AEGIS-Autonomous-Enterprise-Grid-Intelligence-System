@@ -37,20 +37,19 @@ export default function App() {
   }, [agent, loadTickets])
 
   async function handleUpdateTicket(ticketId, status, note = '') {
-    try {
-      const token = localStorage.getItem('aegis_agent_token')
-      await fetch(`${BASE_URL}/tickets/${ticketId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': API_KEY,
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ status, note }),
-      })
-      await loadTickets()
-    } catch(e) { console.error(e) }
-  }
+  try {
+    const token = localStorage.getItem('aegis_agent_token')
+    await fetch(`${BASE_URL}/tickets/${ticketId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ status, note }),
+    })
+    await loadTickets()
+  } catch(e) { console.error(e) }
+}
 
   function handleLogout() {
     localStorage.removeItem('aegis_agent_token')
