@@ -3,7 +3,8 @@
 > An AI-powered enterprise IT helpdesk built with Groq's LLaMA 3.3-70b, FastAPI, and React.
 > No LangChain. No wrappers. Pure tool-use loop in ~50 lines.
 
-**🔴 Live Demo:** https://aegis-autonomous-enterprise-grid-in-seven.vercel.app  
+**🔴 Live Demo (Employee Portal):** https://aegis-autonomous-enterprise-grid-in-seven.vercel.app  
+**🟢 Live Demo (Agent Dashboard):** https://aegis-autonomous-enterprise-grid-in-alpha.vercel.app  
 **📦 Backend API:** https://aegis-helpdesk.onrender.com/health  
 **💻 GitHub:** https://github.com/codewithleo1/AEGIS-Autonomous-Enterprise-Grid-Intelligence-System
 
@@ -21,9 +22,36 @@ Built to demonstrate **SaaS-level AI engineering** without LangChain or any agen
 
 ## 🖥️ Screenshots
 
-> Three-panel UI: ticket sidebar · AI chat · live agent activity
+### Employee Portal — Login
+![Employee Login](docs/01_employee-login.png)
 
-![AEGIS UI](docs/screenshot.png)
+### Employee Portal — AI Chat with Live Agent Activity
+> Three-panel UI: ticket sidebar · AI chat · live tool call trace
+
+![Employee Portal](docs/02_employee-portal.png)
+
+### Employee Portal — Ticket Created via Natural Language
+> Employee describes the issue in plain English. AEGIS calls `create_ticket`, returns a structured confirmation.
+
+![Ticket Created](docs/03_ticket-created.png)
+
+### Agent Dashboard — Login
+![Agent Dashboard Login](docs/04_IT-agent-dashboard-login.png)
+
+### Agent Dashboard — Full Ticket Queue
+> 28 tickets sorted by priority (CRITICAL → HIGH → MEDIUM → LOW). Filter by status or priority.
+
+![Agent Dashboard](docs/05_agent-dashboard.png)
+
+### Agent Dashboard — Resolve Ticket Modal
+> Agent adds a resolution note before closing a ticket. PATCH request updates PostgreSQL in real time.
+
+![Resolve Modal](docs/06_resolve-modal.png)
+
+### Backend API — Swagger UI
+> All routes documented. Lock icons indicate JWT-protected endpoints.
+
+![Swagger API](docs/07_swagger-api.png)
 
 ---
 
@@ -33,9 +61,9 @@ Built to demonstrate **SaaS-level AI engineering** without LangChain or any agen
 User (Browser)
     ↓ HTTPS
 Vercel (React + Vite frontend)
-    ↓ POST /ask  X-API-Key header
+    ↓ POST /ask  Authorization: Bearer <JWT>
 Render (FastAPI backend)
-    ├── Auth middleware — API key verification
+    ├── Auth middleware — JWT verification
     ├── Rate limiting — SlowAPI (30 req/min)
     ├── Groq API — llama-3.3-70b-versatile
     │   └── Tool-use loop (finish_reason == "tool_calls")
@@ -67,6 +95,7 @@ Render (FastAPI backend)
 | LLM | Groq llama-3.3-70b-versatile | Free (14,400 req/day), ultra-fast LPU inference |
 | Backend | FastAPI + Python 3.12 | Async, fast, production-grade |
 | Validation | Pydantic v2 | Industry standard for FastAPI |
+| Auth | JWT (python-jose) | Stateless, role-based, no API key in browser |
 | Session Store | Upstash Redis | Free tier, no infra to manage |
 | Database | Supabase PostgreSQL | Free tier, 500MB, managed |
 | ORM | SQLAlchemy async 2.0 | Non-blocking DB queries |
@@ -91,6 +120,15 @@ Render (FastAPI backend)
 | `get_employee_info` | Look up employee profile by Employee ID |
 | `update_ticket` | Update ticket status and add resolution notes |
 | `generate_report` | Generate helpdesk summary report with breakdowns |
+
+---
+
+## 🔐 Auth & Security
+
+- **JWT-based auth** — employees and agents log in and receive a signed token
+- **Role-based access** — employees see only their own tickets; agents see all
+- **No API key in browser** — frontend sends only JWT; API key never exposed to client
+- **Rate limiting** — 30 requests/min per token via SlowAPI
 
 ---
 
@@ -121,6 +159,7 @@ AEGIS_API_KEY=your_chosen_api_key
 DATABASE_URL=postgresql+asyncpg://...
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
+JWT_SECRET=your_jwt_secret
 APP_ENV=development
 ```
 
@@ -139,14 +178,28 @@ uv run python seed.py
 uv run uvicorn backend.main:app --reload
 ```
 
-### 6. Run the frontend
+### 6. Run the employee frontend
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-Open http://localhost:5173
+### 7. Run the agent dashboard
+```bash
+cd agent-dashboard
+npm install
+npm run dev
+```
+
+Open http://localhost:5173 (employee) and http://localhost:5174 (agent)
+
+**Demo credentials:**
+
+| Portal | Email | Password |
+|---|---|---|
+| Employee | raj.sharma@techcorp.com | aegis1234 |
+| Agent | kiran.pillai@techcorp.com | aegis1234 |
 
 ### Or run with Docker
 ```bash
@@ -187,6 +240,10 @@ Groq's SDK is OpenAI-compatible — the tool-use loop is ~50 lines of clean Pyth
 FastAPI is async. Mixing sync DB calls with an async framework blocks the event loop
 and kills performance under concurrent load. Full async stack = non-blocking throughout.
 
+**Why JWT over API key?**  
+API keys exposed in the browser are a security risk — anyone can copy them from the network tab.
+JWT tokens are short-lived, role-scoped, and never reveal backend secrets.
+
 **Why mock services first?**  
 Building the tool-use loop against in-memory dicts let us validate the entire
 AI pipeline before touching a database. Faster iteration, cleaner separation of concerns.
@@ -206,11 +263,9 @@ aegis/
 │   ├── services/            ← Business logic (DB queries)
 │   ├── db/                  ← SQLAlchemy models + Redis session
 │   ├── api/routes/          ← FastAPI route handlers
-│   └── api/middleware/      ← Auth + rate limiting
-├── frontend/
-│   └── src/
-│       ├── components/      ← Header, ChatPanel, TicketSidebar, ToolPanel
-│       └── api/             ← Axios calls to backend
+│   └── api/middleware/      ← JWT auth + rate limiting
+├── frontend/                ← Employee portal (React + Vite)
+├── agent-dashboard/         ← Agent portal (React + Vite)
 ├── docker/
 │   ├── Dockerfile
 │   └── docker-compose.yml
