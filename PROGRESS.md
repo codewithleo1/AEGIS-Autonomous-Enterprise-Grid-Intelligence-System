@@ -152,20 +152,24 @@ aegis/
 
 ## 🔄 Current Step
 
-**Step 22 COMPLETE ✅**
+**Step 22 COMPLETE ✅ — All fixes merged and pushed**
 
-Last action: JWT auth + agent dashboard live on Vercel
-Next action: Seed production DB with agent passwords, update PROGRESS.md
+Step 22 improvements shipped:
+- JWT-only auth on both frontends — API key removed from browser
+- Ticket scope filtered by JWT role (employees see own tickets only)
+- Employee ID extracted from JWT (not hardcoded)
+- Agent dashboard sorted by priority
+- Resolution note modal added
+- Employee ticket status visibility fixed
+- Agent dashboard auto-refreshes every 60s
 
 ---
 
 ## ⏭️ Next Steps Queue
 
-1. Write README.md — project description, architecture, setup instructions
-2. Take screenshots of live app for portfolio
-3. Update portfolio notes with live URLs
-4. Final git push
-5. Project complete ✅
+1. Take screenshots of live app for portfolio
+2. Update portfolio / LinkedIn with live URLs
+3. Project complete ✅
 
 ---
 
