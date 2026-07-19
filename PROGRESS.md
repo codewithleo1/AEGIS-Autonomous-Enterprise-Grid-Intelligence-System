@@ -152,16 +152,10 @@ aegis/
 
 ## 🔄 Current Step
 
-**Step 22 COMPLETE ✅ — All fixes merged and pushed**
+**Step 22 COMPLETE ✅**
 
-Step 22 improvements shipped:
-- JWT-only auth on both frontends — API key removed from browser
-- Ticket scope filtered by JWT role (employees see own tickets only)
-- Employee ID extracted from JWT (not hardcoded)
-- Agent dashboard sorted by priority
-- Resolution note modal added
-- Employee ticket status visibility fixed
-- Agent dashboard auto-refreshes every 60s
+Last action: JWT-only auth, ticket scoping, agent dashboard improvements all live
+Next action: Portfolio promotion — LinkedIn post, screenshots
 
 ---
 
@@ -200,6 +194,9 @@ Step 22 improvements shipped:
 | 19 | Sync wrappers calling asyncio.run() inside uvicorn fail in Docker/Linux | Always call async functions directly from async routes |
 | 20 | Multiple uvicorn processes on port 8000 from previous sessions | Run netstat -ano | findstr :8000 and kill all PIDs before restarting |
 | 21 | bcrypt 5.x incompatible with passlib — hash fails | Pin bcrypt==4.0.1 |
+| 22 | Employee sidebar showed all tickets — no scoping | Scope /tickets by JWT role — employees see only their own |
+| 23 | AEGIS asked for Employee ID even after login | Inject employee_id from JWT into system prompt |
+| 24 | API key visible in browser network tab | Remove from frontend — send JWT only, accept JWT OR API key on backend |
 
 ---
 
